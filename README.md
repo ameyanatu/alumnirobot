@@ -34,3 +34,132 @@ AlumniRobotLibrary is an AI-powered Robot Framework library that seamlessly inte
 ```bash
 pip install alumnium selenium playwright faker robotframework alumnirobotlibrary
 playwright install
+```
+
+## Quick Start
+
+```robotframework
+*** Settings ***
+Library    AlumniRobotLibrary.py    backend=playwright    browser=webkit    ai_provider=openai    api_key=${OPENAI_API_KEY}
+
+*** Test Cases ***
+AI Login Test With Dynamic Data
+    ${user}=    Generate Test Data    user
+    Open Browser And Init Alumni    https://practicetestautomation.com/practice-test-login/
+    Alumni Do    enter ${user['username']} into username field
+    Alumni Do    enter ${user['password']} into password field
+    Alumni Do    click the login button
+    Alumni Check    page contains error message
+    Alumni Quit
+```
+
+## Usage Guide
+
+### Configuration Options
+
+| Parameter       | Description                           | Default       | Example Values                         |
+|-----------------|---------------------------------------|---------------|----------------------------------------|
+| `backend`       | Automation backend to use             | `selenium`    | `selenium`, `playwright`               |
+| `browser`       | Target browser                        | `chrome`      | `chrome`, `firefox`, `webkit`, `edge`  |
+| `headless`      | Run in headless mode                  | `False`       | `True`, `False`                        |
+| `ai_provider`   | LLM provider for AI capabilities      | `openai`      | `openai`, `anthropic`, `google`, `ollama` |
+| `ai_model`      | Specific model to use (optional)      | *provider default* | `gpt-4o`, `claude-3-haiku`, `gemini-pro` |
+| `api_key`       | API key for chosen provider           | `None`        | `YOUR_API_KEY`                         |
+| `api_base`      | Custom API endpoint (for self-hosted) | *provider default* | `http://localhost:11434`              |
+| `screenshot_dir`| Directory for diagnostics files       | `alumni_failures` | `test_artifacts`, `screenshots`        |
+
+### Core Keywords
+
+| Keyword                         | Description                                        | Example |
+|---------------------------------|----------------------------------------------------|---------|
+| `Open Browser And Init Alumni`  | Start browser and initialize Alumnium with URL     | `Open Browser And Init Alumni    https://example.com` |
+| `Alumni Do`                     | Execute an action using natural language           | `Alumni Do    click the submit button` |
+| `Alumni Check`                  | Verify a condition using natural language          | `Alumni Check    page title is "Welcome"` |
+| `Alumni Get`                    | Retrieve a value using natural language            | `${text}=    Alumni Get    text of welcome message` |
+| `Register Custom Keyword`       | Add your own Python function as a keyword          | `Register Custom Keyword    my_keyword    ${my_function}` |
+| `Alumni Quit`                   | Close browser and clean up                         | `Alumni Quit` |
+
+## Advanced Features
+
+### AI-Powered Error Diagnosis
+
+When a test fails, AlumniRobotLibrary can automatically:
+1. Capture a screenshot and HTML of the page
+2. Analyze the failure using AI
+3. Provide detailed explanations and potential fixes
+
+```
+[AlumniRobotLibrary] Failure in alumni_do('click the login button'):
+ElementNotFoundException: Could not find element matching criteria
+
+📸 Screenshot: alumni_failures/alumni_do_20240515_123456.png
+📄 HTML: alumni_failures/alumni_do_20240515_123456.html
+
+🤖 AI Analysis:
+   The login button was not found on the page. Possible reasons:
+   - The page may not have finished loading
+   - The button might have a different text or appearance than expected
+   - A modal dialog might be blocking access to the button
+   
+   Suggested fixes:
+   - Add a wait step before trying to click: "Alumni Do wait for page to load completely"
+   - Try using a more specific selector: "Alumni Do click button with id 'login-btn'"
+   - Check if you need to dismiss a dialog first
+```
+
+### Custom Keyword Registration
+
+Extend AlumniRobotLibrary with your own Python functions:
+
+```python
+def custom_validation(element_id, expected_value):
+    # Your custom validation logic here
+    return result
+
+# In your Robot Framework test:
+Register Custom Keyword    validate_custom_element    ${custom_validation}
+Alumni Do    click on the settings icon
+validate_custom_element    user-preference    enabled
+```
+
+## System Requirements
+
+- Python 3.7 or newer
+- Robot Framework
+- Selenium or Playwright
+- Faker for test data generation
+- Appropriate LLM provider SDK based on your chosen AI provider
+
+## Contributing
+
+We welcome contributions of all kinds! Here's how you can help:
+
+- **Report Bugs**: Open an issue describing the bug and steps to reproduce
+- **Suggest Features**: Have an idea? We'd love to hear it!
+- **Submit PRs**: Implement new features or fix existing issues
+- **Improve Documentation**: Help us make these docs even better
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting PRs.
+
+## License
+
+AlumniRobotLibrary is released under the [MIT License](LICENSE).
+
+## Resources
+
+- [AlumniRobotLibrary Documentation](https://alumnium.ai/docs/robot-framework/)
+- [Alumnium Core Documentation](https://alumnium.ai/docs/)
+- [Robot Framework User Guide](https://robotframework.org/robotframework/latest/RobotFrameworkUserGuide.html)
+- [Selenium Documentation](https://www.selenium.dev/documentation/)
+- [Playwright Python Documentation](https://playwright.dev/python/)
+
+---
+
+<div align="center">
+  <strong>Supercharge your Robot Framework tests with AI-powered automation!</strong>
+  <br>
+  <br>
+  <a href="https://github.com/alumnium-hq/alumnirobotlibrary/stargazers">
+    <img src="https://img.shields.io/github/stars/alumnium-hq/alumnirobotlibrary?style=social" alt="Stars">
+  </a>
+</div>
