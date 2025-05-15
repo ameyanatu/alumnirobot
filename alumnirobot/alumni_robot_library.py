@@ -130,24 +130,6 @@ class AlumniRobotLibrary:
             self.playwright.stop()
 
     @keyword
-    def generate_test_data(self, data_type="user"):
-        """Generate dynamic test data using Faker."""
-        if data_type == "user":
-            return {
-                "username": self.faker.user_name(),
-                "password": self.faker.password(),
-                "email": self.faker.email()
-            }
-        elif data_type == "address":
-            return {
-                "address": self.faker.address(),
-                "city": self.faker.city(),
-                "country": self.faker.country()
-            }
-        # Extend with more data types as needed
-        return {}
-
-    @keyword
     def register_custom_keyword(self, name, func):
         """Register a custom Python function as a Robot keyword."""
         self.custom_keywords[name] = func
