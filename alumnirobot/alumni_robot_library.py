@@ -130,6 +130,60 @@ class AlumniRobotLibrary:
             self.playwright.stop()
 
     @keyword
+    def generate_test_data(self, data_type="user", schema=None):
+        """
+        Generate dynamic test data using Faker.
+        - data_type: 'user', 'address', or 'custom'
+        - schema: comma-separated string of fields for 'custom'
+        """
+        if data_type == "user":
+            return {
+                "name": self.faker.name(),
+                "username": self.faker.user_name(),
+                "email": self.faker.email(),
+                "password": self.faker.password()
+            }
+        elif data_type == "address":
+            return {
+                "street": self.faker.street_address(),
+                "city": self.faker.city(),
+                "state": self.faker.state(),
+                "zip": self.faker.zipcode()
+            }
+        elif data_type == "custom" and schema:
+            fields = [field.strip() for field in schema.split(",")]
+            data = {}
+            for field in fields:
+                # Map field names to Faker methods (add more as needed)
+                if field == "name":
+                    data["name"] = self.faker.name()
+                elif field == "username":
+                    data["username"] = self.faker.user_name()
+                elif field == "email":
+                    data["email"] = self.faker.email()
+                elif field == "password":
+                    data["password"] = self.faker.password()
+                elif field == "company":
+                    data["company"] = self.faker.company()
+                elif field == "street":
+                    data["street"] = self.faker.street_address()
+                elif field == "city":
+                    data["city"] = self.faker.city()
+                elif field == "state":
+                    data["state"] = self.faker.state()
+                elif field == "zip":
+                    data["zip"] = self.faker.zipcode()
+                elif field == "phone":
+                    data["phone"] = self.faker.phone_number()
+                # Add more mappings as needed
+                else:
+                    data[field] = f"Field '{field}' not recognized"
+            return data
+        else:
+            return {}
+
+
+    @keyword
     def register_custom_keyword(self, name, func):
         """Register a custom Python function as a Robot keyword."""
         self.custom_keywords[name] = func

@@ -25,6 +25,7 @@ AlumniRobotLibrary is an AI-powered Robot Framework library that seamlessly inte
   - Ollama & Self-hosted LLMs
 - **Natural Language Commands**: Write test steps as you would explain them to a human
 - **Self-Healing Actions**: Robust against UI changes and selector modifications
+- **Dynamic Test Data Generation**: Create realistic user profiles, accounts, addresses, and more
 - **Comprehensive Diagnostics**: Automatic screenshots and HTML capture on test failures
 - **AI-Powered Error Analysis**: Get intelligent explanations and fix suggestions for test failures
 - **Extensible Framework**: Easily register custom Python functions as keywords
@@ -40,17 +41,22 @@ playwright install
 
 ```robotframework
 *** Settings ***
-Library    AlumniRobotLibrary.py    backend=playwright    browser=webkit    ai_provider=openai    api_key=${OPENAI_API_KEY}
+Library    AlumniRobotLibrary.py    backend=playwright    browser=chromium    headless=True    ai_provider=openai    ai_model=gpt-4o    api_key=YOUR_OPENAI_API_KEY
+
+*** Variables ***
+${LOGIN_URL}    https://practicetestautomation.com/practice-test-login/
 
 *** Test Cases ***
-AI Login Test With Dynamic Data
+Login With Dynamic User Profile
+    [Documentation]    Generate a full user profile and attempt login using AI-powered keywords.
     ${user}=    Generate Test Data    user
-    Open Browser And Init Alumni    https://practicetestautomation.com/practice-test-login/
+    Open Browser And Init Alumni    ${LOGIN_URL}
     Alumni Do    enter ${user['username']} into username field
     Alumni Do    enter ${user['password']} into password field
     Alumni Do    click the login button
     Alumni Check    page contains error message
     Alumni Quit
+
 ```
 
 ## Usage Guide
@@ -76,6 +82,7 @@ AI Login Test With Dynamic Data
 | `Alumni Do`                     | Execute an action using natural language           | `Alumni Do    click the submit button` |
 | `Alumni Check`                  | Verify a condition using natural language          | `Alumni Check    page title is "Welcome"` |
 | `Alumni Get`                    | Retrieve a value using natural language            | `${text}=    Alumni Get    text of welcome message` |
+| `Generate Test Data`            | Create realistic test data of specified type       | `${user}=    Generate Test Data    user` |
 | `Register Custom Keyword`       | Add your own Python function as a keyword          | `Register Custom Keyword    my_keyword    ${my_function}` |
 | `Alumni Quit`                   | Close browser and clean up                         | `Alumni Quit` |
 
@@ -121,6 +128,14 @@ Register Custom Keyword    validate_custom_element    ${custom_validation}
 Alumni Do    click on the settings icon
 validate_custom_element    user-preference    enabled
 ```
+
+### Dynamic Test Data Types
+
+The `Generate Test Data` keyword supports multiple data types:
+
+- `user`: Complete user profile with name, username, email, password
+- `address`: Physical address with street, city, state, zip
+- `custom`: Specify your own schema
 
 ## System Requirements
 
