@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+alumnirobot/__init__.py
+alumnirobot/alumni_robot_library.py
+alumnirobot.egg-info/PKG-INFO
+alumnirobot.egg-info/SOURCES.txt
+alumnirobot.egg-info/dependency_links.txt
+alumnirobot.egg-info/requires.txt
+alumnirobot.egg-info/top_level.txt

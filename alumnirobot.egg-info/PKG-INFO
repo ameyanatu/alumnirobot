@@ -1,0 +1,17 @@
+Metadata-Version: 2.4
+Name: alumnirobot
+Version: 0.1.0
+Summary: Robot Framework library for Alumni (Alumnium)
+Home-page: https://github.com/ameyanatu/alumnirobot
+Author: Ameya Natu
+Author-email: ameyanatu@yahoo.com
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: Framework :: Robot Framework
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: alumnium
+Requires-Dist: selenium
+Requires-Dist: robotframework
+Dynamic: license-file
