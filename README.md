@@ -41,7 +41,7 @@ playwright install
 
 ```robotframework
 *** Settings ***
-Library    AlumniRobotLibrary.py    backend=playwright    browser=chromium    headless=True    ai_provider=openai    ai_model=gpt-4o    api_key=YOUR_OPENAI_API_KEY
+Library    alumnirobot.alumni_robot_library.AlumniRobotLibrary     backend=playwright    browser=chromium    headless=True    ai_provider=openai    ai_model=gpt-4o    api_key=YOUR_OPENAI_API_KEY
 
 *** Variables ***
 ${LOGIN_URL}    https://practicetestautomation.com/practice-test-login/
@@ -56,6 +56,7 @@ Login With Dynamic User Profile
     Alumni Do    click the login button
     Alumni Check    page contains error message
     Alumni Quit
+
 
 ```
 
