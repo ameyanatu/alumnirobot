@@ -12,8 +12,10 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 # Playwright imports
 from playwright.sync_api import sync_playwright
 
+# Alumnium and utilities
 from alumnium import Alumni
 from faker import Faker
+
 
 @library
 class AlumniRobotLibrary:
@@ -35,10 +37,12 @@ class AlumniRobotLibrary:
         self.page = None
         self.al = None
         self.playwright = None
+        self.browser_instance = None
         self.screenshot_dir = screenshot_dir
         self.custom_keywords = {}
+        self.api_key = api_key  # Save for later use
 
-        # AI model/provider setup
+        # AI provider setup via env + direct SDK client fallback
         if ai_provider:
             os.environ["ALUMNIUM_AI_PROVIDER"] = ai_provider
         if ai_model:
@@ -46,12 +50,25 @@ class AlumniRobotLibrary:
         if api_key:
             if ai_provider == "openai":
                 os.environ["OPENAI_API_KEY"] = api_key
+                try:
+                    import openai
+                    openai.api_key = api_key
+                except ImportError:
+                    pass
             elif ai_provider == "anthropic":
                 os.environ["ANTHROPIC_API_KEY"] = api_key
+                try:
+                    import anthropic
+                    anthropic.Anthropic(api_key=api_key)
+                except ImportError:
+                    pass
             elif ai_provider == "google":
                 os.environ["GOOGLE_API_KEY"] = api_key
+                # Google client usually reads from env only
             elif ai_provider == "deepseek":
                 os.environ["DEEPSEEK_API_KEY"] = api_key
+                # Add SDK fallback if needed
+
         if api_base:
             os.environ["ALUMNIUM_API_BASE"] = api_base
 
@@ -67,7 +84,7 @@ class AlumniRobotLibrary:
             if self.browser == "chrome":
                 options = ChromeOptions()
                 if self.headless:
-                    options.add_argument("--headless")
+                    options.add_argument("--headless=new")
                 self.driver = Chrome(options=options)
             elif self.browser == "firefox":
                 options = FirefoxOptions()
@@ -80,15 +97,15 @@ class AlumniRobotLibrary:
             self.al = Alumni(self.driver)
         elif self.backend == "playwright":
             self.playwright = sync_playwright().start()
-            if self.browser == "chrome" or self.browser == "chromium":
-                browser = self.playwright.chromium.launch(headless=self.headless)
+            if self.browser in ["chrome", "chromium"]:
+                self.browser_instance = self.playwright.chromium.launch(headless=self.headless)
             elif self.browser == "firefox":
-                browser = self.playwright.firefox.launch(headless=self.headless)
+                self.browser_instance = self.playwright.firefox.launch(headless=self.headless)
             elif self.browser == "webkit":
-                browser = self.playwright.webkit.launch(headless=self.headless)
+                self.browser_instance = self.playwright.webkit.launch(headless=self.headless)
             else:
                 raise ValueError(f"Unsupported Playwright browser: {self.browser}")
-            self.page = browser.new_page()
+            self.page = self.browser_instance.new_page()
             self.page.goto(url)
             self.al = Alumni(self.page)
         else:
@@ -126,8 +143,11 @@ class AlumniRobotLibrary:
         """Quit browser/context."""
         if self.backend == "selenium" and self.driver:
             self.driver.quit()
-        elif self.backend == "playwright" and self.playwright:
-            self.playwright.stop()
+        elif self.backend == "playwright":
+            if self.browser_instance:
+                self.browser_instance.close()
+            if self.playwright:
+                self.playwright.stop()
 
     @keyword
     def generate_test_data(self, data_type="user", schema=None):
@@ -153,35 +173,27 @@ class AlumniRobotLibrary:
         elif data_type == "custom" and schema:
             fields = [field.strip() for field in schema.split(",")]
             data = {}
+            FAKER_FIELD_MAP = {
+                "name": "name",
+                "username": "user_name",
+                "email": "email",
+                "password": "password",
+                "company": "company",
+                "street": "street_address",
+                "city": "city",
+                "state": "state",
+                "zip": "zipcode",
+                "phone": "phone_number"
+            }
             for field in fields:
-                # Map field names to Faker methods (add more as needed)
-                if field == "name":
-                    data["name"] = self.faker.name()
-                elif field == "username":
-                    data["username"] = self.faker.user_name()
-                elif field == "email":
-                    data["email"] = self.faker.email()
-                elif field == "password":
-                    data["password"] = self.faker.password()
-                elif field == "company":
-                    data["company"] = self.faker.company()
-                elif field == "street":
-                    data["street"] = self.faker.street_address()
-                elif field == "city":
-                    data["city"] = self.faker.city()
-                elif field == "state":
-                    data["state"] = self.faker.state()
-                elif field == "zip":
-                    data["zip"] = self.faker.zipcode()
-                elif field == "phone":
-                    data["phone"] = self.faker.phone_number()
-                # Add more mappings as needed
+                method_name = FAKER_FIELD_MAP.get(field)
+                if method_name:
+                    data[field] = getattr(self.faker, method_name)()
                 else:
                     data[field] = f"Field '{field}' not recognized"
             return data
         else:
             return {}
-
 
     @keyword
     def register_custom_keyword(self, name, func):
@@ -195,24 +207,18 @@ class AlumniRobotLibrary:
         screenshot_path = os.path.join(self.screenshot_dir, f"{action}_{ts}.png")
         html_path = os.path.join(self.screenshot_dir, f"{action}_{ts}.html")
 
-        # Screenshot and HTML capture for Selenium
-        if self.backend == "selenium" and self.driver:
-            try:
+        try:
+            if self.backend == "selenium" and self.driver:
                 self.driver.save_screenshot(screenshot_path)
                 with open(html_path, "w", encoding="utf-8") as f:
                     f.write(self.driver.page_source)
-            except Exception:
-                pass
-        # Screenshot and HTML capture for Playwright
-        elif self.backend == "playwright" and self.page:
-            try:
+            elif self.backend == "playwright" and self.page:
                 self.page.screenshot(path=screenshot_path)
                 with open(html_path, "w", encoding="utf-8") as f:
                     f.write(self.page.content())
-            except Exception:
-                pass
+        except Exception:
+            pass
 
-        # Log to Robot Framework log
         BuiltIn().log(
             f"\n[AlumniRobotLibrary] Failure in {action}('{command}'):\n"
             f"{exception}\n"
@@ -221,5 +227,3 @@ class AlumniRobotLibrary:
             f"Traceback:\n{traceback.format_exc()}",
             level='ERROR'
         )
-
-
